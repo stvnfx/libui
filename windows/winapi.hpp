@@ -23,18 +23,28 @@
 #define _WIN32_IE			0x0700
 #define NTDDI_VERSION		0x06000000
 
+// The MinGW-w64 header has an unverified IDWriteTypography definition.
+// TODO I can confirm this myself, but I don't know how long it will take for them to note my adjustments... Either way, I have to confirm this myself.
+// TODO change the check from _MSC_VER to a MinGW-w64-specific check
+// TODO keep track of what else is guarded by this
+#ifndef _MSC_VER
+#define __MINGW_USE_BROKEN_INTERFACE
+#endif
+
 #include <windows.h>
 
 // Microsoft's resource compiler will segfault if we feed it headers it was not designed to handle
 #ifndef RC_INVOKED
 #include <commctrl.h>
 #include <uxtheme.h>
+#include <vsstyle.h>
+#include <vssym32.h>
 #include <windowsx.h>
 #include <shobjidl.h>
 #include <d2d1.h>
 #include <d2d1helper.h>
 #include <dwrite.h>
-#include <usp10.h>
+#include <wincodec.h>
 
 #include <stdint.h>
 #include <string.h>
@@ -47,5 +57,8 @@
 
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <sstream>
+#include <functional>
+#include <utility>
 #endif

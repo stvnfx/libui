@@ -7,6 +7,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/areaevents.cpp
 	windows/areascroll.cpp
 	windows/areautil.cpp
+	windows/attrstr.cpp
 	windows/box.cpp
 	windows/button.cpp
 	windows/checkbox.cpp
@@ -28,15 +29,18 @@ list(APPEND _LIBUI_SOURCES
 	windows/events.cpp
 	windows/fontbutton.cpp
 	windows/fontdialog.cpp
+	windows/fontmatch.cpp
 	windows/form.cpp
 	windows/graphemes.cpp
 	windows/grid.cpp
 	windows/group.cpp
+	windows/image.cpp
 	windows/init.cpp
 	windows/label.cpp
 	windows/main.cpp
 	windows/menu.cpp
 	windows/multilineentry.cpp
+	windows/opentype.cpp
 	windows/parent.cpp
 	windows/progressbar.cpp
 	windows/radiobuttons.cpp
@@ -46,6 +50,11 @@ list(APPEND _LIBUI_SOURCES
 	windows/spinbox.cpp
 	windows/stddialogs.cpp
 	windows/tab.cpp
+	windows/table.cpp
+	windows/tabledispinfo.cpp
+	windows/tabledraw.cpp
+	windows/tableediting.cpp
+	windows/tablemetrics.cpp
 	windows/tabpage.cpp
 	windows/text.cpp
 	windows/utf16.cpp
@@ -53,8 +62,17 @@ list(APPEND _LIBUI_SOURCES
 	windows/window.cpp
 	windows/winpublic.cpp
 	windows/winutil.cpp
-	windows/resources.rc
 )
+# resources.rc only contains the libui manifest.
+# For a DLL, we have to include this directly, so we do so.
+# Windows won't link resources in static libraries, so including this would have no effect.
+# In those cases, we just need them to include the manifest with the executable (or link it directly into the output executable themselves); they can also customize the manifest as they see fit (assuming nothing breaks in the process).
+# TODO make sure this gets added to both binary-only archives and install rules in this case
+if(BUILD_SHARED_LIBS)
+	list(APPEND _LIBUI_SOURCES
+		windows/resources.rc
+	)
+endif()
 set(_LIBUI_SOURCES ${_LIBUI_SOURCES} PARENT_SCOPE)
 
 list(APPEND _LIBUI_INCLUDEDIRS
@@ -62,24 +80,9 @@ list(APPEND _LIBUI_INCLUDEDIRS
 )
 set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
-# Windows won't link resources in static libraries; we need to provide the libui.res file in this case.
-set(_LIBUINAME libui PARENT_SCOPE)
-if(NOT BUILD_SHARED_LIBS)
-	set(_LIBUI_STATIC_RES ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/libui.res PARENT_SCOPE)
-endif()
-macro(_handle_static)
-	# TODO this full path feels hacky
-	add_custom_command(
-		TARGET libui POST_BUILD
-		COMMAND
-			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc.* ${_LIBUI_STATIC_RES}
-		COMMENT "Copying libui.res")
-endmacro()
-
-# notice that usp10 comes before gdi32
 # TODO prune this list
 set(_LIBUI_LIBS
-	user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
+	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs
 PARENT_SCOPE)
 
 if(NOT MSVC)
